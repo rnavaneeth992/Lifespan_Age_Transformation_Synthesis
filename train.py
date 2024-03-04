@@ -16,12 +16,17 @@ from tqdm import tqdm
 
 def train(opt):
     iter_path = os.path.join(opt.checkpoints_dir, opt.name, 'iter.txt')
-
+    print("Inside training")
     if opt.continue_train:
+        print("Continue training")
         if opt.which_epoch == 'latest':
+            print("In Latest")
             try:
-                start_epoch, epoch_iter = np.loadtxt(iter_path , delimiter=',', dtype=int)
+                print("Try 1")
+                start_epoch, epoch_iter = np.loadtxt(iter_path, delimiter=',', dtype=int)
+                print("Try 2")
                 print(start_epoch, epoch_iter)
+                print("")
             except:
                 start_epoch, epoch_iter = 1, 0
         else:
