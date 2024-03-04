@@ -561,8 +561,6 @@ class AgeEncoder(nn.Module):
     def forward(self, input):
         features = self.encoder(input)
         latent = features.mean(dim=3).mean(dim=2)
-        print("Age Encoder Output")
-        print(latent)
         return latent
 
 class StyledDecoder(nn.Module):
@@ -646,7 +644,7 @@ class StyledDecoder(nn.Module):
         out = self.StyledConvBlock_up0(out, latent)
         out = self.StyledConvBlock_up1(out, latent)
         out = self.conv_img(out)
-
+        print(out)
         return out
 
 class Generator(nn.Module):
