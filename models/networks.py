@@ -561,6 +561,7 @@ class AgeEncoder(nn.Module):
     def forward(self, input):
         features = self.encoder(input)
         latent = features.mean(dim=3).mean(dim=2)
+        print("Age Encoder Output")
         print(latent)
         return latent
 
