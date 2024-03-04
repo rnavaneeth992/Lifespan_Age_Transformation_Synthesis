@@ -74,6 +74,7 @@ def train(opt):
         dataset.num_workers = opt.nThreads
         dataset.dataset.set_sample_mode(False)
 
+    print(start_epoch)
     for epoch in range(start_epoch, opt.epochs):
         epoch_start_time = time.time()
         if epoch != start_epoch:
