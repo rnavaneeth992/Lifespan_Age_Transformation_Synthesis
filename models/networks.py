@@ -524,7 +524,6 @@ class IdentityEncoder(nn.Module):
         self.encoder = nn.Sequential(*encoder)
 
     def forward(self, input):
-        print(self.encoder(input))
         return self.encoder(input)
 
 class AgeEncoder(nn.Module):
@@ -562,6 +561,7 @@ class AgeEncoder(nn.Module):
     def forward(self, input):
         features = self.encoder(input)
         latent = features.mean(dim=3).mean(dim=2)
+        print(latent)
         return latent
 
 class StyledDecoder(nn.Module):
