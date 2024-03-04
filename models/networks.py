@@ -524,6 +524,7 @@ class IdentityEncoder(nn.Module):
         self.encoder = nn.Sequential(*encoder)
 
     def forward(self, input):
+        print(self.encoder(input))
         return self.encoder(input)
 
 class AgeEncoder(nn.Module):
