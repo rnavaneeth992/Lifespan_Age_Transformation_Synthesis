@@ -113,7 +113,10 @@ def train(opt):
             disc_losses = model.update_D()
             gen_losses, gen_in, gen_out, rec_out, cyc_out = model.update_G(infer=save_fake)
             # if (i + 1) % len(dataset) == 0:  # Check if it's the last batch of the epoch
-            save_generated_images(epoch+1, gen_out, output_dir='train_output', suffix='')
+            if gen_out is not None:
+                save_generated_images(epoch+1, gen_out, output_dir='train_output', suffix='')
+            else:
+                print(f"Warning: No generated images to save at epoch {epoch+1}")
             loss_dict = dict(gen_losses, **disc_losses)
             ##################################################
 
