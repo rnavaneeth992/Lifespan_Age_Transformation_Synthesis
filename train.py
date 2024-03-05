@@ -9,10 +9,31 @@ from models.models import create_model
 import util.util as util
 from util.visualizer import Visualizer
 import os
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from pdb import set_trace as st
 from tqdm import tqdm
+
+def save_generated_images(epoch, gen_images, output_dir='train_output', suffix=''):
+    """
+    Saves generated images for visualization.
+
+    Parameters:
+        epoch (int): Current epoch number.
+        gen_images (tensor): Tensor of generated images.
+        output_dir (str): Directory to save the images.
+        suffix (str): Suffix to add to the saved file name.
+    """
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Convert the tensor to numpy images
+    images_numpy = util.tensor2im(gen_images.data)
+
+    # Save each image
+    for i, image in enumerate(images_numpy):
+        plt.imsave(os.path.join(output_dir, f"epoch_{epoch}_img_{i}{suffix}.png"), image)
 
 def train(opt):
     iter_path = os.path.join(opt.checkpoints_dir, opt.name, 'iter.txt')
@@ -91,6 +112,8 @@ def train(opt):
             model.set_inputs(data)
             disc_losses = model.update_D()
             gen_losses, gen_in, gen_out, rec_out, cyc_out = model.update_G(infer=save_fake)
+            # if (i + 1) % len(dataset) == 0:  # Check if it's the last batch of the epoch
+            save_generated_images(epoch+1, gen_out, output_dir='train_output', suffix='')
             loss_dict = dict(gen_losses, **disc_losses)
             ##################################################
 

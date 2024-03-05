@@ -644,7 +644,6 @@ class StyledDecoder(nn.Module):
         out = self.StyledConvBlock_up0(out, latent)
         out = self.StyledConvBlock_up1(out, latent)
         out = self.conv_img(out)
-        print(out)
         return out
 
 class Generator(nn.Module):
