@@ -1,5 +1,3 @@
-### Copyright (C) 2020 Roy Or-El. All rights reserved.
-### Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 import numpy as np
 import torch
 import torch.nn as nn
@@ -296,10 +294,6 @@ class LATS(BaseModel): #Lifetime Age Transformation Synthesis
 
         # identity feature loss
         loss_G_identity_reconst = self.identity_reconst_criterion(fake_id_features, orig_id_features) * self.opt.lambda_id
-        # age feature loss
-        loss_G_age_reconst = self.age_reconst_criterion(fake_age_features, self.gen_conditions) * self.opt.lambda_age
-        # orig age feature loss
-        loss_G_age_reconst += self.age_reconst_criterion(orig_age_features, self.orig_conditions) * self.opt.lambda_age
 
         # adversarial loss
         target_classes = torch.cat((self.class_B,self.class_A),0)
@@ -307,7 +301,7 @@ class LATS(BaseModel): #Lifetime Age Transformation Synthesis
 
         # overall loss
         loss_G = (loss_G_GAN + loss_G_Rec + loss_G_Cycle + \
-        loss_G_identity_reconst + loss_G_age_reconst).mean()
+        loss_G_identity_reconst).mean()
 
         loss_G.backward()
         self.optimizer_G.step()
@@ -340,8 +334,7 @@ class LATS(BaseModel): #Lifetime Age Transformation Synthesis
                     cyc_images_out = cyc_images
 
         loss_dict = {'loss_G_Adv': loss_G_GAN.mean(), 'loss_G_Cycle': loss_G_Cycle.mean(),
-                     'loss_G_Rec': loss_G_Rec.mean(), 'loss_G_identity_reconst': loss_G_identity_reconst.mean(),
-                     'loss_G_age_reconst': loss_G_age_reconst.mean()}
+                     'loss_G_Rec': loss_G_Rec.mean(), 'loss_G_identity_reconst': loss_G_identity_reconst.mean()}
 
         return [loss_dict,
                 None if not infer else self.reals,
@@ -351,21 +344,17 @@ class LATS(BaseModel): #Lifetime Age Transformation Synthesis
 
 
     def update_D(self):
-        # Discriminator optimization setp
         self.optimizer_D.zero_grad()
         self.get_conditions()
 
-        ############### multi GPU ###############
         _, gen_images, _, _, _, _, _ = self.netG(self.reals, self.gen_conditions, None, None, disc_pass=True)
 
-        #fake discriminator pass
         fake_disc_in = gen_images.detach()
         fake_disc_out = self.netD(fake_disc_in)
 
-        #real discriminator pass
         real_disc_in = self.reals
 
-        # necessary for R1 regularization
+        #R1 regularization
         real_disc_in.requires_grad_()
 
         real_disc_out = self.netD(real_disc_in)
@@ -402,7 +391,7 @@ class LATS(BaseModel): #Lifetime Age Transformation Synthesis
             if self.traverse or self.deploy:
                 if self.traverse and self.compare_to_trained_outputs:
                     start = self.compare_to_trained_class - self.trained_class_jump
-                    end = start + (self.trained_class_jump * 2) * 2 #arange is between [start, end), end is always omitted
+                    end = start + (self.trained_class_jump * 2) * 2
                     self.class_B = torch.arange(start, end, step=self.trained_class_jump*2, dtype=self.class_A.dtype)
                 else:
                     self.class_B = torch.arange(self.numClasses, dtype=self.class_A.dtype)
@@ -491,7 +480,6 @@ class LATS(BaseModel): #Lifetime Age Transformation Synthesis
 
             if not (self.traverse or self.deploy):
                 if self.debug_mode:
-                    # continue with tex reconstructions
                     curr_rec_A_tex = rec_A_tex[:, i, :, :, :]
                     orig_dict = OrderedDict([('orig_img2', real_A_img)])
                     return_dicts[i].update(orig_dict)
