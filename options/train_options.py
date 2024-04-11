@@ -1,3 +1,5 @@
+### Copyright (C) 2020 Roy Or-El. All rights reserved.
+### Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 from .base_options import BaseOptions
 
 class TrainOptions(BaseOptions):
@@ -34,5 +36,6 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--lambda_cyc', type=float, default=10.0, help='weight for cycle loss')
         self.parser.add_argument('--lambda_rec', type=float, default=10.0, help='weight for reconstruction loss')
         self.parser.add_argument('--lambda_id', type=float, default=1.0, help='weight for identity encoding consistency loss')
+        self.parser.add_argument('--lambda_age', type=float, default=1.0, help='weight for age encoding consistency loss')
 
         self.isTrain = True

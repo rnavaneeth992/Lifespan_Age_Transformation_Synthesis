@@ -1,3 +1,5 @@
+### Copyright (C) 2020 Roy Or-El. All rights reserved.
+### Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 import torch
 import torch.nn as nn
 import torch.nn.init as init
@@ -9,6 +11,9 @@ import numpy as np
 from math import sqrt
 from pdb import set_trace as st
 
+###############################################################################
+# Functions
+###############################################################################
 def weights_init(init_type='gaussian'):
     def init_fun(m):
         classname = m.__class__.__name__
@@ -87,6 +92,10 @@ def print_network(net):
     print(net)
     print('Total number of parameters: %d' % num_params)
 
+
+##############################################################################
+# Data parallel wrapper
+##############################################################################
 class _CustomDataParallel(nn.DataParallel):
     def __init__(self, model):
         super(_CustomDataParallel, self).__init__(model)
@@ -99,6 +108,9 @@ class _CustomDataParallel(nn.DataParallel):
             return getattr(self.module, name)
 
 
+##############################################################################
+# Losses
+##############################################################################
 class FeatureConsistency(nn.Module):
     def __init__(self):
         super(FeatureConsistency, self).__init__()
@@ -143,6 +155,9 @@ class SelectiveClassesNonSatGANLoss(nn.Module):
 
         return loss
 
+##############################################################################
+# Generator
+##############################################################################
 class EqualLR:
     def __init__(self, name):
         self.name = name
