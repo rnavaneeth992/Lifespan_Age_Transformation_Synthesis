@@ -8,7 +8,10 @@ from .base_model import BaseModel
 import util.util as util
 from . import networks
 from pdb import set_trace as st
+from keras_facenet import FaceNet
 
+
+facenet = FaceNet()
 class LATS(BaseModel): #Lifetime Age Transformation Synthesis
     def name(self):
         return 'LATS'
@@ -293,7 +296,7 @@ class LATS(BaseModel): #Lifetime Age Transformation Synthesis
             loss_G_Cycle = torch.zeros(1).cuda()
 
         # identity feature loss
-        loss_G_identity_reconst = self.identity_reconst_criterion(fake_id_features, orig_id_features) * self.opt.lambda_id
+        loss_G_identity_reconst = facenet.embeddings(self.identity_reconst_criterion(fake_id_features, orig_id_features) * self.opt.lambda_id)
 
         # adversarial loss
         target_classes = torch.cat((self.class_B,self.class_A),0)
