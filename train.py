@@ -1,7 +1,5 @@
-### Copyright (C) 2020 Roy Or-El. All rights reserved.
-### Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 import time
-import scipy # this is to prevent a potential error caused by importing torch before scipy (happens due to a bad combination of torch & scipy versions)
+import scipy 
 from collections import OrderedDict
 from options.train_options import TrainOptions
 from data.data_loader import CreateDataLoader
@@ -15,39 +13,13 @@ import torch
 from pdb import set_trace as st
 from tqdm import tqdm
 
-def save_generated_images(epoch, gen_images, output_dir='train_output', suffix=''):
-    """
-    Saves generated images for visualization.
-
-    Parameters:
-        epoch (int): Current epoch number.
-        gen_images (tensor): Tensor of generated images.
-        output_dir (str): Directory to save the images.
-        suffix (str): Suffix to add to the saved file name.
-    """
-    # Create the output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Convert the tensor to numpy images
-    images_numpy = util.tensor2im(gen_images.data[0])
-
-    # Save each image
-    for i, image in enumerate(images_numpy):
-        plt.imsave(os.path.join(output_dir, f"epoch_{epoch}_img_{i}{suffix}.png"), image)
-
 def train(opt):
     iter_path = os.path.join(opt.checkpoints_dir, opt.name, 'iter.txt')
-    print("Inside training")
     if opt.continue_train:
-        print("Continue training")
         if opt.which_epoch == 'latest':
-            print("In Latest")
             try:
-                print("Try 1")
                 start_epoch, epoch_iter = np.loadtxt(iter_path, delimiter=',', dtype=int)
-                print("Try 2")
                 print(start_epoch, epoch_iter)
-                print("")
             except:
                 start_epoch, epoch_iter = 1, 0
         else:
@@ -72,30 +44,8 @@ def train(opt):
 
     total_steps = (start_epoch) * dataset_size + epoch_iter
 
-    display_delta = total_steps % opt.display_freq
-    print_delta = total_steps % opt.print_freq
-    save_delta = total_steps % opt.save_latest_freq
     bSize = opt.batchSize
 
-    #in case there's no display sample one image from each class to test after every epoch
-    if opt.display_id == 0:
-        dataset.dataset.set_sample_mode(True)
-        dataset.num_workers = 1
-        for i, data in enumerate(dataset):
-            if i*opt.batchSize >= opt.numClasses:
-                break
-            if i == 0:
-                sample_data = data
-            else:
-                for key, value in data.items():
-                    if torch.is_tensor(data[key]):
-                        sample_data[key] = torch.cat((sample_data[key], data[key]), 0)
-                    else:
-                        sample_data[key] = sample_data[key] + data[key]
-        dataset.num_workers = opt.nThreads
-        dataset.dataset.set_sample_mode(False)
-
-    print(start_epoch)
     for epoch in range(start_epoch, opt.epochs):
         epoch_start_time = time.time()
         if epoch != start_epoch:
@@ -105,26 +55,16 @@ def train(opt):
             total_steps += opt.batchSize
             epoch_iter += opt.batchSize
 
-            # whether to collect output images
-            save_fake = (total_steps % opt.display_freq == display_delta) and (opt.display_id > 0)
-
-            ############## Network Pass ########################
             model.set_inputs(data)
             disc_losses = model.update_D()
             gen_losses, gen_in, gen_out, rec_out, cyc_out = model.update_G(infer=save_fake)
-            # if (i + 1) % len(dataset) == 0:  # Check if it's the last batch of the epoch
-            # save_generated_images(epoch+1, gen_out, output_dir='train_output', suffix='')
             loss_dict = dict(gen_losses, **disc_losses)
-            ##################################################
 
-            ############## Display results and errors ##########
-            ### print out errors
-            if total_steps % opt.print_freq == print_delta:
-                errors = {k: v.item() if not (isinstance(v, float) or isinstance(v, int)) else v for k, v in loss_dict.items()}
-                t = (time.time() - iter_start_time) / opt.batchSize
-                visualizer.print_current_errors(epoch+1, epoch_iter, errors, t)
-                if opt.display_id > 0:
-                    visualizer.plot_current_errors(epoch, float(epoch_iter)/dataset_size, opt, errors)
+            errors = {k: v.item() if not (isinstance(v, float) or isinstance(v, int)) else v for k, v in loss_dict.items()}
+            t = (time.time() - iter_start_time) / opt.batchSize
+            visualizer.print_current_errors(epoch+1, epoch_iter, errors, t)
+            if opt.display_id > 0:
+                visualizer.plot_current_errors(epoch, float(epoch_iter)/dataset_size, opt, errors)
 
             ### display output images
             if save_fake and opt.display_id > 0:
@@ -154,15 +94,14 @@ def train(opt):
                 visualizer.display_current_results(visuals, epoch, classes, ncols)
 
             ### save latest model
-            if total_steps % opt.save_latest_freq == save_delta:
-                print('saving the latest model (epoch %d, total_steps %d)' % (epoch+1, total_steps))
-                model.save('latest')
-                np.savetxt(iter_path, (epoch, epoch_iter), delimiter=',', fmt='%d')
-                if opt.display_id == 0:
-                    model.eval()
-                    visuals = model.inference(sample_data)
-                    visualizer.save_matrix_image(visuals, 'latest')
-                    model.train()
+            print('saving the latest model (epoch %d, total_steps %d)' % (epoch+1, total_steps))
+            model.save('latest')
+            np.savetxt(iter_path, (epoch, epoch_iter), delimiter=',', fmt='%d')
+            if opt.display_id == 0:
+                model.eval()
+                visuals = model.inference(sample_data)
+                visualizer.save_matrix_image(visuals, 'latest')
+                model.train()
 
         # end of epoch
         iter_end_time = time.time()
